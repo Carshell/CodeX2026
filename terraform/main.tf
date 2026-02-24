@@ -51,7 +51,7 @@ resource "google_container_cluster" "my_cluster" {
 
   # Avoid setting deletion_protection to false
   # until you're ready (and certain you want) to destroy the cluster.
-  # deletion_protection = false
+  deletion_protection = false
 
   depends_on = [
     module.enable_google_apis
@@ -72,11 +72,14 @@ module "gcloud" {
   create_cmd_body = "container clusters get-credentials ${local.cluster_name} --zone=${var.region} --project=${var.gcp_project_id}"
 }
 
-# Apply YAML kubernetes-manifest configurations
-resource "null_resource" "apply_deployment" {
+# Створення namespaces для Staging та Production
+resource "null_resource" "create_namespaces" {
   provisioner "local-exec" {
     interpreter = ["bash", "-exc"]
-    command     = "kubectl apply -k ${var.filepath_manifest} -n ${var.namespace}"
+    command     = <<-EOT
+      kubectl create namespace staging --dry-run=client -o yaml | kubectl apply -f -
+      kubectl create namespace production --dry-run=client -o yaml | kubectl apply -f -
+    EOT
   }
 
   depends_on = [
@@ -84,17 +87,41 @@ resource "null_resource" "apply_deployment" {
   ]
 }
 
-# Wait condition for all Pods to be ready before finishing
+# Деплой у Staging
+resource "null_resource" "apply_deployment_staging" {
+  provisioner "local-exec" {
+    interpreter = ["bash", "-exc"]
+    command     = "kubectl apply -k ${var.filepath_manifest} -n staging"
+  }
+  depends_on = [resource.null_resource.create_namespaces]
+}
+
+# Деплой у Production
+resource "null_resource" "apply_deployment_production" {
+  provisioner "local-exec" {
+    interpreter = ["bash", "-exc"]
+    command     = "kubectl apply -k ${var.filepath_manifest} -n production"
+  }
+  depends_on = [resource.null_resource.create_namespaces]
+}
+
+# Wait condition for all Pods to be ready in both namespaces before finishing
 resource "null_resource" "wait_conditions" {
   provisioner "local-exec" {
     interpreter = ["bash", "-exc"]
     command     = <<-EOT
     kubectl wait --for=condition=AVAILABLE apiservice/v1beta1.metrics.k8s.io --timeout=180s
-    kubectl wait --for=condition=ready pods --all -n ${var.namespace} --timeout=280s
+    
+    # Чекаємо на поди у Staging
+    kubectl wait --for=condition=ready pods --all -n staging --timeout=280s
+    
+    # Чекаємо на поди у Production
+    kubectl wait --for=condition=ready pods --all -n production --timeout=280s
     EOT
   }
 
   depends_on = [
-    resource.null_resource.apply_deployment
+    resource.null_resource.apply_deployment_staging,
+    resource.null_resource.apply_deployment_production
   ]
 }
