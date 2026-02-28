@@ -115,8 +115,20 @@ jobs:
             export IMAGE_TAG="${CIRCLE_SHA1:0:12}"
             export REPO="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}"
 
-            echo "${GOOGLE_CREDENTIALS}" > /tmp/gcp-key.json
-            gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+            echo "${GOOGLE_CREDENTIALS}" > /tmp/gcp-credentials.json
+            CRED_TYPE="$(jq -r '.type // empty' /tmp/gcp-credentials.json)"
+
+            if [ "${CRED_TYPE}" = "service_account" ]; then
+              gcloud auth activate-service-account --key-file=/tmp/gcp-credentials.json
+            elif [ "${CRED_TYPE}" = "external_account" ]; then
+              : "${CIRCLE_OIDC_TOKEN_V2:?CIRCLE_OIDC_TOKEN_V2 is required for external_account credentials}"
+              echo "${CIRCLE_OIDC_TOKEN_V2}" > /tmp/oidc_token
+              gcloud auth login --brief --cred-file=/tmp/gcp-credentials.json
+            else
+              echo "Unsupported GOOGLE_CREDENTIALS type: ${CRED_TYPE}"
+              exit 1
+            fi
+
             gcloud config set project "${GCP_PROJECT_ID}"
             gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" -q
 
