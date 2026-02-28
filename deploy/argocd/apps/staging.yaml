@@ -7,6 +7,16 @@ metadata:
   - resources-finalizer.argocd.argoproj.io
 spec:
   project: online-boutique
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jqPathExpressions:
+    - .metadata.annotations["autopilot.gke.io/resource-adjustment"]
+    - .metadata.annotations["autopilot.gke.io/warden-version"]
+    - .spec.template.spec.containers[].resources
+    - .spec.template.spec.initContainers[].resources
+    - .spec.template.spec.securityContext.seccompProfile
+    - .spec.template.spec.tolerations
   source:
     repoURL: https://github.com/Carshell/CodeX2026.git
     targetRevision: main
