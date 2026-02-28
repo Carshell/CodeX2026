@@ -154,6 +154,7 @@ done
 5. Add your repo:
    - Public repo: HTTPS URL only.
    - Private repo: add PAT/SSH credentials.
+<img width="1919" height="886" alt="Знімок екрана 2026-02-28 214731" src="https://github.com/user-attachments/assets/9a08b6cf-9b4f-4e27-8a2c-8c14bf390535" />
 
 ## 8. Install AppProject + root app (CLI)
 
