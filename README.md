@@ -207,6 +207,7 @@ Point these records to your NGINX ingress controller public IP:
 ```bash
 kubectl get ingress -A -o wide
 ```
+<img width="1066" height="330" alt="Знімок екрана 2026-02-28 214437" src="https://github.com/user-attachments/assets/0f1faf2b-1b07-4390-8c93-6b92be27c421" />
 
 Create or update DNS A records:
 
