@@ -19,6 +19,8 @@ gcloud auth login
 gcloud auth application-default login
 ```
 
+<img width="1919" height="815" alt="Знімок екрана 2026-02-28 214158" src="https://github.com/user-attachments/assets/c4df904e-9a60-4890-a79a-9aa00d4c7f3b" />
+
 ## 2. One-time tasks in Web UI (Google Cloud Console)
 
 1. Create or choose a Google Cloud project.
