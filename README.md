@@ -308,3 +308,7 @@ Grant CI service account:
 - Argo manifests: `deploy/argocd/*`
 - Env overlays: `deploy/overlays/*`
 - Monitoring config: `deploy/monitoring/*`
+
+<img width="1897" height="872" alt="Знімок екрана 2026-02-28 215047" src="https://github.com/user-attachments/assets/db6dc046-6b66-49c0-9617-e9411850835d" />
+<img width="1919" height="874" alt="Знімок екрана 2026-02-28 215416" src="https://github.com/user-attachments/assets/c328c669-6906-49e6-aeb5-e3d4a8aa489c" />
+
