@@ -5,9 +5,11 @@ namespace: onlineboutique-prod
 
 resources:
 - ../../../kustomize/base
+- frontend-ingress.yaml
 
 components:
 - ../../../kustomize/components/without-loadgenerator
+- ../../../kustomize/components/non-public-frontend
 
 images:
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/adservice

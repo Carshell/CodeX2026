@@ -20,14 +20,21 @@ jobs:
 
   dotnet-unit-tests:
     docker:
-      - image: cimg/dotnet:10.0
+      - image: mcr.microsoft.com/dotnet/sdk:10.0
     working_directory: ~/project
     steps:
+      - run:
+          name: Install git for checkout
+          command: |
+            set -euo pipefail
+            apt-get update
+            apt-get install -y git
       - checkout
       - run:
           name: Run C# unit tests
           command: |
             set -euo pipefail
+            dotnet --info
             dotnet test src/cartservice/cartservice.sln --configuration Release
 
   kustomize-build:
@@ -113,7 +120,12 @@ jobs:
             gcloud config set project "${GCP_PROJECT_ID}"
             gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" -q
 
-            skaffold build --default-repo="${REPO}" --tag="${IMAGE_TAG}"
+            skaffold build --default-repo="${REPO}" --tag="${IMAGE_TAG}" --push=true
+      - run:
+          name: Verify pushed images are present
+          command: |
+            set -euo pipefail
+            gcloud artifacts docker images list "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}" --include-tags --format='table(package,tags)' | sed -n '1,40p'
       - run:
           name: Update dev overlay tag
           command: |

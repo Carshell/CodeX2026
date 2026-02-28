@@ -143,7 +143,7 @@ done
 
 ## 7. Register repo in Argo CD (Web UI)
 
-1. Open Argo CD UI from `argocd-argocd-server` external IP.
+1. Open Argo CD UI at `https://argocd.codexhakaton.srvx.space`.
 2. Log in as `admin` with initial secret password.
 3. Change password immediately.
 4. Go to `Settings` -> `Repositories` -> `Connect Repo`.
@@ -182,12 +182,36 @@ kubectl -n onlineboutique-staging get pods
 kubectl -n onlineboutique-prod get pods
 ```
 
-Frontend endpoints:
+Frontend ingress endpoints:
 
 ```bash
-kubectl -n onlineboutique-dev get svc frontend-external
-kubectl -n onlineboutique-staging get svc frontend-external
-kubectl -n onlineboutique-prod get svc frontend-external
+kubectl -n onlineboutique-dev get ingress frontend-ingress
+kubectl -n onlineboutique-staging get ingress frontend-ingress
+kubectl -n onlineboutique-prod get ingress frontend-ingress
+```
+
+Expected hostnames:
+
+1. `dev.codexhakaton.srvx.space` -> dev
+2. `staging.codexhakaton.srvx.space` -> staging
+3. `codexhakaton.srvx.space` -> prod
+
+### 9.3 DNS records
+
+Point these records to your NGINX ingress controller public IP:
+
+```bash
+kubectl get ingress -A -o wide
+```
+
+Create or update DNS A records:
+
+1. `argocd.codexhakaton.srvx.space`
+2. `dev.codexhakaton.srvx.space`
+3. `staging.codexhakaton.srvx.space`
+4. `codexhakaton.srvx.space`
+
+If you still have a legacy ingress using `codexhakaton.srvx.space`, remove or change that old ingress before syncing the new prod app to avoid host conflicts.
 ```
 
 ## 10. CircleCI setup (Web UI)
