@@ -73,6 +73,8 @@ kubectl -n argocd get svc argocd-argocd-server
 kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath='{.data.password}' | base64 -d && echo
 ```
+<img width="1919" height="877" alt="Знімок екрана 2026-02-28 214327" src="https://github.com/user-attachments/assets/393e8c83-2510-4698-9841-5468204dee5d" />
+
 
 ## 5. Configure GitOps manifests in this repo
 
