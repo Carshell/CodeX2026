@@ -13,34 +13,34 @@ components:
 images:
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/adservice
   newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/adservice
-  newTag: d777af637c4b
+  newTag: 9bfef3f08db6
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/cartservice
   newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/cartservice
-  newTag: d777af637c4b
+  newTag: 9bfef3f08db6
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/checkoutservice
   newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/checkoutservice
-  newTag: d777af637c4b
+  newTag: 9bfef3f08db6
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/currencyservice
   newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/currencyservice
-  newTag: d777af637c4b
+  newTag: 9bfef3f08db6
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/emailservice
   newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/emailservice
-  newTag: d777af637c4b
+  newTag: 9bfef3f08db6
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/frontend
   newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/frontend
-  newTag: d777af637c4b
+  newTag: 9bfef3f08db6
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/loadgenerator
   newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/loadgenerator
-  newTag: d777af637c4b
+  newTag: 9bfef3f08db6
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/paymentservice
   newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/paymentservice
-  newTag: d777af637c4b
+  newTag: 9bfef3f08db6
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/productcatalogservice
   newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/productcatalogservice
-  newTag: d777af637c4b
+  newTag: 9bfef3f08db6
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/recommendationservice
   newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/recommendationservice
-  newTag: d777af637c4b
+  newTag: 9bfef3f08db6
 - name: us-central1-docker.pkg.dev/google-samples/microservices-demo/shippingservice
   newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/shippingservice
-  newTag: d777af637c4b
+  newTag: 9bfef3f08db6
