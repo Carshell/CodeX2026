@@ -108,6 +108,9 @@ jobs:
               chmod +x /tmp/skaffold
               sudo mv /tmp/skaffold /usr/local/bin/skaffold
             fi
+            if ! command -v circleci >/dev/null 2>&1; then
+              curl -fsSL https://circle.ci/cli | sudo bash
+            fi
       - run:
           name: Build and push images to Artifact Registry
           command: |
@@ -121,8 +124,23 @@ jobs:
             if [ "${CRED_TYPE}" = "service_account" ]; then
               gcloud auth activate-service-account --key-file=/tmp/gcp-credentials.json
             elif [ "${CRED_TYPE}" = "external_account" ]; then
-              : "${CIRCLE_OIDC_TOKEN_V2:?CIRCLE_OIDC_TOKEN_V2 is required for external_account credentials}"
-              echo "${CIRCLE_OIDC_TOKEN_V2}" > /tmp/oidc_token
+              OIDC_AUDIENCE="$(jq -r '.audience // empty' /tmp/gcp-credentials.json)"
+              if [ -z "${OIDC_AUDIENCE}" ]; then
+                echo "Missing .audience in external_account GOOGLE_CREDENTIALS"
+                exit 1
+              fi
+
+              # Request a token whose aud matches GCP provider expectation.
+              if command -v circleci >/dev/null 2>&1; then
+                circleci run oidc get --claims "{\"aud\":\"${OIDC_AUDIENCE}\"}" > /tmp/oidc_token
+              elif [ -n "${CIRCLE_OIDC_TOKEN_V2:-}" ]; then
+                echo "circleci CLI not available, falling back to CIRCLE_OIDC_TOKEN_V2"
+                echo "${CIRCLE_OIDC_TOKEN_V2}" > /tmp/oidc_token
+              else
+                echo "No CircleCI OIDC token source found (circleci CLI or CIRCLE_OIDC_TOKEN_V2)"
+                exit 1
+              fi
+
               gcloud auth login --brief --cred-file=/tmp/gcp-credentials.json
             else
               echo "Unsupported GOOGLE_CREDENTIALS type: ${CRED_TYPE}"
