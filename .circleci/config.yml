@@ -79,6 +79,21 @@ jobs:
       GITOPS_TARGET_BRANCH: main
     steps:
       - checkout
+      - run:
+          name: Skip promotion-only commits (loop guard)
+          command: |
+            set -euo pipefail
+
+            CHANGED_FILES="$(git show --name-only --pretty=format: "${CIRCLE_SHA1}" | sed '/^$/d' | sort -u)"
+            echo "Changed files in ${CIRCLE_SHA1}:"
+            echo "${CHANGED_FILES}"
+
+            NON_PROMOTION_FILES="$(echo "${CHANGED_FILES}" | grep -vE '^deploy/overlays/(dev|staging|prod)/kustomization\.yaml$' || true)"
+
+            if [ -n "${CHANGED_FILES}" ] && [ -z "${NON_PROMOTION_FILES}" ]; then
+              echo "Promotion-only commit detected; halting this job to avoid PR recursion."
+              circleci-agent step halt
+            fi
       - setup_remote_docker
       - run:
           name: Validate required env vars
@@ -145,7 +160,7 @@ jobs:
             set -euo pipefail
             gcloud artifacts docker images list "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}" --include-tags --format='table(package,tags)' | sed -n '1,40p'
       - run:
-          name: Commit and open PRs for dev/staging/prod promotion
+          name: Commit and open PR for dev promotion
           command: |
             set -euo pipefail
             export IMAGE_TAG="${CIRCLE_SHA1:0:12}"
@@ -213,8 +228,6 @@ jobs:
             }
 
             create_promotion_pr dev
-            create_promotion_pr staging
-            create_promotion_pr prod
 
 workflows:
   ci:

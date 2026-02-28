@@ -254,13 +254,13 @@ Grant CI service account:
 
 1. Merge code to `main`.
 2. CircleCI builds images tagged with commit SHA and pushes to Artifact Registry.
-3. CircleCI opens 3 PRs:
+3. CircleCI opens PR:
    - `ci/dev-images-<sha>`
-   - `ci/staging-images-<sha>`
-   - `ci/prod-images-<sha>`
 4. Merge `dev` PR to deploy dev (auto-sync in Argo).
-5. Merge `staging` PR and manually sync `online-boutique-staging` in Argo UI.
-6. Merge `prod` PR and manually sync `online-boutique-prod` in Argo UI.
+5. Promote to staging/prod by creating PRs that update:
+   - `deploy/overlays/staging/kustomization.yaml`
+   - `deploy/overlays/prod/kustomization.yaml`
+6. Manually sync `online-boutique-staging` and `online-boutique-prod` in Argo UI after merge.
 
 ## 12. Files added for this setup
 
