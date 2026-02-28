@@ -210,7 +210,7 @@ Create or update DNS A records:
 2. `dev.codexhakaton.srvx.space`
 3. `staging.codexhakaton.srvx.space`
 4. `codexhakaton.srvx.space`
-5. `grafana.codexhakaton.srvx.space`
+5. `monitoring.codexhakaton.srvx.space`
 
 If you still have a legacy ingress using `codexhakaton.srvx.space`, remove or change that old ingress before syncing the new prod app to avoid host conflicts.
 ```
@@ -233,12 +233,12 @@ Validate:
 
 ```bash
 kubectl -n monitoring get ingress prometheus-grafana
-kubectl -n monitoring get certificate grafana-monitoring-tls
+kubectl -n monitoring get certificate monitoring-tls
 ```
 
 Expected Grafana URL:
 
-1. `https://grafana.codexhakaton.srvx.space`
+1. `https://monitoring.codexhakaton.srvx.space`
 
 ## 11. CircleCI setup (Web UI)
 
