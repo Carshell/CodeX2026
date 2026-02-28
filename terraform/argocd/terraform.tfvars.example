@@ -1,0 +1,24 @@
+project_id       = "your-gcp-project-id"
+region           = "us-central1"
+cluster_name     = "online-boutique"
+cluster_location = "us-central1"
+
+# Optional: pin a specific Argo CD chart version.
+# argocd_chart_version = "7.7.16"
+
+# Recommended when existing ingress controller is present.
+argo_server_service_type = "ClusterIP"
+
+# Ingress and TLS integration (nginx + cert-manager).
+enable_argocd_ingress        = true
+argocd_ingress_class_name    = "nginx"
+argocd_ingress_hostname      = "argocd.example.com"
+argocd_ingress_tls_secret_name = "argocd-server-tls"
+argocd_ingress_cluster_issuer  = "letsencrypt-prod"
+
+# Monitoring integration (kube-prometheus-stack).
+enable_service_monitors = true
+# service_monitor_additional_labels = { release = "prometheus" }
+
+# Optional: custom chart values file (relative path from terraform/argocd).
+# argocd_helm_values_file = "values.argocd.yaml"

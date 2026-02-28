@@ -1,0 +1,42 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: onlineboutique-dev
+
+resources:
+- ../../../kustomize/base
+
+images:
+- name: us-central1-docker.pkg.dev/google-samples/microservices-demo/adservice
+  newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/adservice
+  newTag: dev-latest
+- name: us-central1-docker.pkg.dev/google-samples/microservices-demo/cartservice
+  newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/cartservice
+  newTag: dev-latest
+- name: us-central1-docker.pkg.dev/google-samples/microservices-demo/checkoutservice
+  newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/checkoutservice
+  newTag: dev-latest
+- name: us-central1-docker.pkg.dev/google-samples/microservices-demo/currencyservice
+  newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/currencyservice
+  newTag: dev-latest
+- name: us-central1-docker.pkg.dev/google-samples/microservices-demo/emailservice
+  newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/emailservice
+  newTag: dev-latest
+- name: us-central1-docker.pkg.dev/google-samples/microservices-demo/frontend
+  newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/frontend
+  newTag: dev-latest
+- name: us-central1-docker.pkg.dev/google-samples/microservices-demo/loadgenerator
+  newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/loadgenerator
+  newTag: dev-latest
+- name: us-central1-docker.pkg.dev/google-samples/microservices-demo/paymentservice
+  newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/paymentservice
+  newTag: dev-latest
+- name: us-central1-docker.pkg.dev/google-samples/microservices-demo/productcatalogservice
+  newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/productcatalogservice
+  newTag: dev-latest
+- name: us-central1-docker.pkg.dev/google-samples/microservices-demo/recommendationservice
+  newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/recommendationservice
+  newTag: dev-latest
+- name: us-central1-docker.pkg.dev/google-samples/microservices-demo/shippingservice
+  newName: us-central1-docker.pkg.dev/project-37ed24a7-5563-4ce5-a6f/microservices-demo/shippingservice
+  newTag: dev-latest

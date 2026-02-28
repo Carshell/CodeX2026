@@ -1,0 +1,183 @@
+version: 2.1
+
+jobs:
+  go-unit-tests:
+    docker:
+      - image: cimg/go:1.25.0
+    working_directory: ~/project
+    steps:
+      - checkout
+      - run:
+          name: Run Go unit tests
+          command: |
+            set -euo pipefail
+            for GO_PACKAGE in "shippingservice" "productcatalogservice" "frontend/validator" "frontend/money"; do
+              echo "Testing src/${GO_PACKAGE}"
+              pushd "src/${GO_PACKAGE}"
+              go test ./...
+              popd
+            done
+
+  dotnet-unit-tests:
+    docker:
+      - image: cimg/dotnet:10.0
+    working_directory: ~/project
+    steps:
+      - checkout
+      - run:
+          name: Run C# unit tests
+          command: |
+            set -euo pipefail
+            dotnet test src/cartservice/cartservice.sln --configuration Release
+
+  kustomize-build:
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/project
+    steps:
+      - checkout
+      - run:
+          name: Install kustomize
+          command: |
+            set -euo pipefail
+            if command -v kustomize >/dev/null 2>&1; then
+              kustomize version
+              exit 0
+            fi
+
+            KUSTOMIZE_VERSION="v5.7.1"
+            curl -fsSL \
+              "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz" \
+              -o /tmp/kustomize.tar.gz
+            sudo tar -xzf /tmp/kustomize.tar.gz -C /usr/local/bin kustomize
+            kustomize version
+      - run:
+          name: Validate Kustomize manifests
+          command: |
+            set -euo pipefail
+            kustomize build kubernetes-manifests >/dev/null
+            kustomize build kustomize >/dev/null
+            kustomize build deploy/argocd >/dev/null
+            for test in kustomize/tests/*/; do
+              echo "Building ${test}"
+              kustomize build "${test}" >/dev/null
+            done
+
+  build-and-open-gitops-pr:
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/project
+    environment:
+      GAR_REPOSITORY: microservices-demo
+      GITOPS_TARGET_BRANCH: main
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Validate required env vars
+          command: |
+            set -euo pipefail
+            required=(GOOGLE_CREDENTIALS GCP_PROJECT_ID GCP_REGION GITOPS_PUSH_TOKEN)
+            for var in "${required[@]}"; do
+              if [ -z "${!var:-}" ]; then
+                echo "Missing required env var: ${var}"
+                exit 1
+              fi
+            done
+      - run:
+          name: Install gcloud + jq + skaffold
+          command: |
+            set -euo pipefail
+            sudo apt-get update
+            sudo apt-get install -y apt-transport-https ca-certificates curl gnupg jq
+            if ! command -v gcloud >/dev/null 2>&1; then
+              echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
+              curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+              sudo apt-get update
+              sudo apt-get install -y google-cloud-cli
+            fi
+            if ! command -v skaffold >/dev/null 2>&1; then
+              curl -Lo /tmp/skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+              chmod +x /tmp/skaffold
+              sudo mv /tmp/skaffold /usr/local/bin/skaffold
+            fi
+      - run:
+          name: Build and push images to Artifact Registry
+          command: |
+            set -euo pipefail
+            export IMAGE_TAG="${CIRCLE_SHA1:0:12}"
+            export REPO="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}"
+
+            echo "${GOOGLE_CREDENTIALS}" > /tmp/gcp-key.json
+            gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+            gcloud config set project "${GCP_PROJECT_ID}"
+            gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" -q
+
+            skaffold build --default-repo="${REPO}" --tag="${IMAGE_TAG}"
+      - run:
+          name: Update dev overlay tag
+          command: |
+            set -euo pipefail
+            export IMAGE_TAG="${CIRCLE_SHA1:0:12}"
+            sed -i "s/newTag: .*/newTag: ${IMAGE_TAG}/g" deploy/overlays/dev/kustomization.yaml
+            git status --short
+      - run:
+          name: Commit and open PR for dev promotion
+          command: |
+            set -euo pipefail
+            export IMAGE_TAG="${CIRCLE_SHA1:0:12}"
+            export BRANCH_NAME="ci/dev-images-${IMAGE_TAG}"
+
+            git config user.email "ci-bot@users.noreply.github.com"
+            git config user.name "circleci-bot"
+
+            git checkout -b "${BRANCH_NAME}"
+            git add deploy/overlays/dev/kustomization.yaml
+            git commit -m "chore(gitops): promote dev images to ${IMAGE_TAG}"
+
+            git remote set-url origin "https://x-access-token:${GITOPS_PUSH_TOKEN}@github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git"
+            git push -u origin "${BRANCH_NAME}"
+
+            PR_BODY=$(jq -n \
+              --arg title "chore(gitops): promote dev images to ${IMAGE_TAG}" \
+              --arg head "${BRANCH_NAME}" \
+              --arg base "${GITOPS_TARGET_BRANCH}" \
+              --arg body "Automated PR from CircleCI. Updates dev overlay image tags to ${IMAGE_TAG}." \
+              '{title:$title, head:$head, base:$base, body:$body}')
+
+            curl -fsSL -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GITOPS_PUSH_TOKEN}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls" \
+              -d "${PR_BODY}"
+
+workflows:
+  ci:
+    jobs:
+      - go-unit-tests
+      - dotnet-unit-tests
+      - kustomize-build
+
+  main-build-and-gitops:
+    jobs:
+      - go-unit-tests:
+          filters:
+            branches:
+              only: main
+      - dotnet-unit-tests:
+          filters:
+            branches:
+              only: main
+      - kustomize-build:
+          filters:
+            branches:
+              only: main
+      - build-and-open-gitops-pr:
+          requires:
+            - go-unit-tests
+            - dotnet-unit-tests
+            - kustomize-build
+          filters:
+            branches:
+              only: main
