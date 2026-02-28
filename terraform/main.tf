@@ -74,6 +74,8 @@ module "gcloud" {
 
 # Створення namespaces для Staging та Production
 resource "null_resource" "create_namespaces" {
+  count = var.enable_legacy_namespace_deployments ? 1 : 0
+
   provisioner "local-exec" {
     interpreter = ["bash", "-exc"]
     command     = <<-EOT
@@ -89,24 +91,30 @@ resource "null_resource" "create_namespaces" {
 
 # Деплой у Staging
 resource "null_resource" "apply_deployment_staging" {
+  count = var.enable_legacy_namespace_deployments ? 1 : 0
+
   provisioner "local-exec" {
     interpreter = ["bash", "-exc"]
     command     = "kubectl apply -k ${var.filepath_manifest} -n staging"
   }
-  depends_on = [resource.null_resource.create_namespaces]
+  depends_on = [null_resource.create_namespaces[0]]
 }
 
 # Деплой у Production
 resource "null_resource" "apply_deployment_production" {
+  count = var.enable_legacy_namespace_deployments ? 1 : 0
+
   provisioner "local-exec" {
     interpreter = ["bash", "-exc"]
     command     = "kubectl apply -k ${var.filepath_manifest} -n production"
   }
-  depends_on = [resource.null_resource.create_namespaces]
+  depends_on = [null_resource.create_namespaces[0]]
 }
 
 # Wait condition for all Pods to be ready in both namespaces before finishing
 resource "null_resource" "wait_conditions" {
+  count = var.enable_legacy_namespace_deployments ? 1 : 0
+
   provisioner "local-exec" {
     interpreter = ["bash", "-exc"]
     command     = <<-EOT
@@ -121,7 +129,7 @@ resource "null_resource" "wait_conditions" {
   }
 
   depends_on = [
-    resource.null_resource.apply_deployment_staging,
-    resource.null_resource.apply_deployment_production
+    null_resource.apply_deployment_staging[0],
+    null_resource.apply_deployment_production[0]
   ]
 }

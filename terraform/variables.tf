@@ -45,3 +45,9 @@ variable "memorystore" {
   type        = bool
   description = "If true, Online Boutique's in-cluster Redis cache will be replaced with a Google Cloud Memorystore Redis cache"
 }
+
+variable "enable_legacy_namespace_deployments" {
+  type        = bool
+  description = "Enable legacy direct deployments to staging/production namespaces from this Terraform stack."
+  default     = false
+}
