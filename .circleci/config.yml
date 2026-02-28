@@ -133,7 +133,12 @@ jobs:
             gcloud config set project "${GCP_PROJECT_ID}"
             gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" -q
 
-            skaffold build --default-repo="${REPO}" --tag="${IMAGE_TAG}" --push=true
+            # CircleCI remote Docker does not always have QEMU binfmt configured.
+            # Force amd64-only builds for CI to avoid arm64 exec-format failures.
+            cp skaffold.yaml /tmp/skaffold.ci.yaml
+            sed -i 's/platforms: \["linux\/amd64", "linux\/arm64"\]/platforms: ["linux\/amd64"]/g' /tmp/skaffold.ci.yaml
+
+            skaffold build -f /tmp/skaffold.ci.yaml --default-repo="${REPO}" --tag="${IMAGE_TAG}" --push=true
       - run:
           name: Verify pushed images are present
           command: |
