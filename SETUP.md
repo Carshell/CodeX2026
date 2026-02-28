@@ -215,9 +215,9 @@ Create or update DNS A records:
 If you still have a legacy ingress using `codexhakaton.srvx.space`, remove or change that old ingress before syncing the new prod app to avoid host conflicts.
 ```
 
-## 10. Grafana HTTPS on subdomain
+## 10. Monitoring HTTPS on subdomain
 
-Grafana is managed by Helm release `prometheus` in namespace `monitoring`.
+Monitoring UI (Grafana) is managed by Helm release `prometheus` in namespace `monitoring`.
 
 Apply the tracked override values:
 
@@ -236,7 +236,7 @@ kubectl -n monitoring get ingress prometheus-grafana
 kubectl -n monitoring get certificate monitoring-tls
 ```
 
-Expected Grafana URL:
+Expected Monitoring URL:
 
 1. `https://monitoring.codexhakaton.srvx.space`
 
