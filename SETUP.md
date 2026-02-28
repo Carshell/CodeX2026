@@ -210,23 +210,49 @@ Create or update DNS A records:
 2. `dev.codexhakaton.srvx.space`
 3. `staging.codexhakaton.srvx.space`
 4. `codexhakaton.srvx.space`
+5. `grafana.codexhakaton.srvx.space`
 
 If you still have a legacy ingress using `codexhakaton.srvx.space`, remove or change that old ingress before syncing the new prod app to avoid host conflicts.
 ```
 
-## 10. CircleCI setup (Web UI)
+## 10. Grafana HTTPS on subdomain
+
+Grafana is managed by Helm release `prometheus` in namespace `monitoring`.
+
+Apply the tracked override values:
+
+```bash
+helm upgrade prometheus prometheus-community/kube-prometheus-stack \
+  -n monitoring \
+  --reuse-values \
+  --force-conflicts \
+  -f deploy/monitoring/grafana-ingress-values.yaml
+```
+
+Validate:
+
+```bash
+kubectl -n monitoring get ingress prometheus-grafana
+kubectl -n monitoring get certificate grafana-monitoring-tls
+```
+
+Expected Grafana URL:
+
+1. `https://grafana.codexhakaton.srvx.space`
+
+## 11. CircleCI setup (Web UI)
 
 Pipeline now includes:
 
 1. PR/branch CI jobs: tests + kustomize validation.
 2. Main-branch job: build/push images and open GitOps PR updating `deploy/overlays/dev/kustomization.yaml`.
 
-### 10.1 Connect repo
+### 11.1 Connect repo
 
 1. In CircleCI, connect `Carshell/CodeX2026`.
 2. Ensure config path is `.circleci/config.yml`.
 
-### 10.2 Create a CircleCI Context (recommended)
+### 11.2 Create a CircleCI Context (recommended)
 
 Create context (for example `gcp-gitops`) and add:
 
@@ -237,20 +263,20 @@ Create context (for example `gcp-gitops`) and add:
 5. `GITOPS_PUSH_TOKEN`: GitHub token with `repo` scope to push branch + open PR.
 6. Optional `GITOPS_TARGET_BRANCH`: defaults to `main`.
 
-### 10.3 Service account IAM
+### 11.3 Service account IAM
 
 Grant CI service account:
 
 1. `roles/artifactregistry.writer`
 2. `roles/storage.admin` (if your build tooling requires registry/storage interactions)
 
-### 10.4 Branch protection in GitHub
+### 11.4 Branch protection in GitHub
 
 1. Protect `main`.
 2. Require status checks from CircleCI.
 3. Keep direct pushes blocked so GitOps PRs are reviewed.
 
-## 11. Day-2 GitOps flow
+## 12. Day-2 GitOps flow
 
 1. Merge code to `main`.
 2. CircleCI builds images tagged with commit SHA and pushes to Artifact Registry.
@@ -262,9 +288,10 @@ Grant CI service account:
    - `deploy/overlays/prod/kustomization.yaml`
 6. Manually sync `online-boutique-staging` and `online-boutique-prod` in Argo UI after merge.
 
-## 12. Files added for this setup
+## 13. Files added for this setup
 
 - Terraform Argo stack: `terraform/argocd/*`
 - Bootstrap script: `terraform/argocd/scripts/bootstrap-gcp-terraform.sh`
 - Argo manifests: `deploy/argocd/*`
 - Env overlays: `deploy/overlays/*`
+- Monitoring overrides: `deploy/monitoring/grafana-ingress-values.yaml`

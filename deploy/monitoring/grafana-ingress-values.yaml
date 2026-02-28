@@ -1,0 +1,31 @@
+grafana:
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      acme.cert-manager.io/http01-edit-in-place: "true"
+    hosts:
+      - grafana.codexhakaton.srvx.space
+    path: /
+    pathType: Prefix
+    tls:
+      - secretName: grafana-monitoring-tls
+        hosts:
+          - grafana.codexhakaton.srvx.space
+  grafana.ini:
+    server:
+      domain: grafana.codexhakaton.srvx.space
+      root_url: https://grafana.codexhakaton.srvx.space
+  env:
+    GF_SERVER_ROOT_URL: https://grafana.codexhakaton.srvx.space
+  sidecar:
+    dashboards:
+      env:
+        GF_SERVER_ROOT_URL: https://grafana.codexhakaton.srvx.space
+    datasources:
+      env:
+        GF_SERVER_ROOT_URL: https://grafana.codexhakaton.srvx.space
