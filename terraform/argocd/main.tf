@@ -95,6 +95,11 @@ locals {
       crds = {
         install = true
       }
+      configs = {
+        params = {
+          "server.insecure" = var.enable_argocd_ingress ? "true" : "false"
+        }
+      }
       server = local.server_values
     },
     jsondecode(var.enable_service_monitors ? jsonencode(local.service_monitor_values) : "{}")
