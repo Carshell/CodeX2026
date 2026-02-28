@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: online-boutique
+  namespace: argocd
+spec:
+  description: GitOps project for Online Boutique
+  sourceRepos:
+  - https://github.com/Carshell/CodeX2026.git
+  destinations:
+  - namespace: argocd
+    server: https://kubernetes.default.svc
+  - namespace: onlineboutique-dev
+    server: https://kubernetes.default.svc
+  - namespace: onlineboutique-staging
+    server: https://kubernetes.default.svc
+  - namespace: onlineboutique-prod
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: "*"
+    kind: "*"
+  namespaceResourceWhitelist:
+  - group: "*"
+    kind: "*"
